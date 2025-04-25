@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from flask import Flask, jsonify
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
@@ -12,11 +14,12 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///hotel.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = 'jasoidopisdhjqwbmclkqmwlckpqisocuioqp[ojweiouifeojlmelcklecjejcopcjlwcj'
-
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=30)
 db.init_app(app)
 
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
+
 
 @jwt.unauthorized_loader
 def custom_unauthorized_response(callback):
