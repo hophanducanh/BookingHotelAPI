@@ -54,7 +54,8 @@ def import_data(db):
                         address=hotel_data['Location'],
                         policies=policies.replace("\"",""),
                         description=description,
-                        id_location=location.id_location
+                        id_location=location.id_location,
+                        distance = hotel_data['Distance']
                     )
                     db.session.add(hotel)
                     db.session.flush()

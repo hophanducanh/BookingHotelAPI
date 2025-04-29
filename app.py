@@ -9,6 +9,7 @@ from routes.hotels import hotels_bp
 from routes.users import users_bp
 from routes.exec_sql import exec_sql_bp
 from import_data import import_data
+from routes.comments import comments_bp
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///hotel.db'
@@ -53,6 +54,7 @@ app.register_blueprint(locations_bp, url_prefix='/')
 app.register_blueprint(hotels_bp, url_prefix='/')
 app.register_blueprint(users_bp, url_prefix='/')
 app.register_blueprint(exec_sql_bp,url_prefix='/')
+app.register_blueprint(comments_bp,url_prefix='/')
 
 if __name__ == '__main__':
     with app.app_context():

@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from extensions import db
-from models import User
+from models import Users
 from werkzeug.utils import secure_filename
 import os
 
@@ -32,7 +32,7 @@ def register_user():
         phone_number = request.form.get('phone_number')
         country = request.form.get('country')
 
-        if User.query.filter_by(email=email).first():
+        if Users.query.filter_by(email=email).first():
             return jsonify({
                 'status': 'error',
                 'message': 'email already exists'
@@ -52,7 +52,7 @@ def register_user():
 
         password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
 
-        new_user = User(
+        new_user = Users(
             user_name=user_name,
             email=email,
             phone_number=phone_number,
@@ -107,7 +107,7 @@ def login_user():
                 'message': 'email and password are required'
             }), 400
 
-        user = User.query.filter_by(email=email).first()
+        user = Users.query.filter_by(email=email).first()
         if not user or not bcrypt.check_password_hash(user.password, password):
             return jsonify({
                 'status': 'error',
@@ -142,7 +142,7 @@ def login_user():
 def get_profile():
     try:
         email = get_jwt_identity()
-        user = User.query.filter_by(email=email).first()
+        user = Users.query.filter_by(email=email).first()
         if not user:
             return jsonify({
                 'status': 'error',
