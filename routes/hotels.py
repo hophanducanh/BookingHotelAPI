@@ -135,11 +135,6 @@ def get_hotels_by_location(id):
 
         result = []
         for hotel, user_rating in hotels:
-            # Filter by user_rating after query
-            if user_rating_min is not None and (user_rating is None or user_rating < user_rating_min):
-                continue
-            if user_rating_max is not None and (user_rating is None or user_rating > user_rating_max):
-                continue
 
             result.append({
                 'id': hotel.id,

@@ -4,6 +4,7 @@ from flask import Flask, jsonify
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
 from extensions import db
+from routes.admin import admin_bp
 from routes.locations import locations_bp
 from routes.hotels import hotels_bp
 from routes.users import users_bp
@@ -55,6 +56,7 @@ app.register_blueprint(hotels_bp, url_prefix='/')
 app.register_blueprint(users_bp, url_prefix='/')
 app.register_blueprint(exec_sql_bp,url_prefix='/')
 app.register_blueprint(comments_bp,url_prefix='/')
+app.register_blueprint(admin_bp,url_prefix='/')
 
 if __name__ == '__main__':
     with app.app_context():

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manage Users</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <h1 class="text-3xl font-bold mb-4">Manage Users</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="bg-{{ 'green' if category == 'success' else 'red' }}-100 border-{{ 'green' if category == 'success' else 'red' }}-400 text-{{ 'green' if category == 'success' else 'red' }}-700 px-4 py-3 rounded mb-4">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <form method="POST" class="mb-4">
+            <div class="mb-4">
+                <label class="block text-gray-700">User Name</label>
+                <input type="text" name="user_name" class="w-full p-2 border rounded" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Email</label>
+                <input type="email" name="email" class="w-full p-2 border rounded" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Phone Number</label>
+                <input type="text" name="phone_number" class="w-full p-2 border rounded">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Country</label>
+                <input type="text" name="country" class="w-full p-2 border rounded">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Password</label>
+                <input type="password" name="password" class="w-full p-2 border rounded" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Avatar URL</label>
+                <input type="text" name="avatar_url" class="w-full p-2 border rounded">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Point</label>
+                <input type="number" name="point" class="w-full p-2 border rounded" value="0">
+            </div>
+            <button type="submit" class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Add User</button>
+        </form>
+        <table class="w-full border-collapse border">
+            <thead>
+                <tr class="bg-gray-200">
+                    <th class="border p-2">ID</th>
+                    <th class="border p-2">Name</th>
+                    <th class="border p-2">Email</th>
+  <th class="border p-2">Phone</th>
+                    <th class="border p-2">Country</th>
+                    <th class="border p-2">Point</th>
+                    <th class="border p-2">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users.items %}
+                    <tr>
+                        <td class="border p-2">{{ user.id }}</td>
+                        <td class="border p-2">{{ user.user_name }}</td>
+                        <td class="border p-2">{{ user.email }}</td>
+                        <td class="border p-2">{{ user.phone_number }}</td>
+                        <td class="border p-2">{{ user.country }}</td>
+                        <td class="border p-2">{{ user.point }}</td>
+                        <td class="border p-2">
+                            <a href="{{ url_for('admin.delete_user', id=user.id) }}" class="text-red-500 hover:text-red-700" onclick="return confirm('Are you sure?')">Delete</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if users.has_prev or users.has_next %}
+            <div class="mt-4">
+                {% if users.has_prev %}
+                    <a href="{{ url_for('admin.manage_users', page=users.prev_num) }}" class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Previous</a>
+                {% endif %}
+                {% if users.has_next %}
+                    <a href="{{ url_for('admin.manage_users', page=users.next_num) }}" class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Next</a>
+                {% endif %}
+            </div>
+        {% endif %}
+        <a href="{{ url_for('admin.admin_dashboard') }}" class="mt-4 inline-block bg-gray-500 text-white p-2 rounded hover:bg-gray-600">Back to Dashboard</a>
+    </div>
+</body>
+</html>
