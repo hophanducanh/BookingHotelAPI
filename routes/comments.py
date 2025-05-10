@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import Comment, Hotel, Users, CommentImages
+from models import Comment, Hotel, Users, CommentImages, Booking, Hotel_Room
 from extensions import db
 from sqlalchemy.exc import IntegrityError
 import os
@@ -44,7 +44,8 @@ def create_comment():
             logger.error("User not found")
             return jsonify({
                 'status': 'error',
-                'message': 'User not found'
+                'message': 'User not found',
+                'data': None
             }), 404
 
         # Check if form data is present
@@ -52,7 +53,8 @@ def create_comment():
             logger.error("No form data received")
             return jsonify({
                 'status': 'error',
-                'message': 'Request must contain form data'
+                'message': 'Request must contain form data',
+                'data': None
             }), 400
 
         # Validate required fields
@@ -62,7 +64,8 @@ def create_comment():
             logger.error(f"Missing fields: {missing_fields}")
             return jsonify({
                 'status': 'error',
-                'message': f'Missing required fields: {missing_fields}'
+                'message': f'Missing required fields: {missing_fields}',
+                'data': None
             }), 400
 
         # Extract form data
@@ -77,7 +80,8 @@ def create_comment():
             logger.error(f"Too many images: {len(image_files)}")
             return jsonify({
                 'status': 'error',
-                'message': f'Maximum {MAX_IMAGES} images allowed'
+                'message': f'Maximum {MAX_IMAGES} images allowed',
+                'data': None
             }), 400
 
         # Validate rating_point
@@ -87,13 +91,15 @@ def create_comment():
                 logger.error(f"Invalid rating_point: {rating_point}")
                 return jsonify({
                     'status': 'error',
-                    'message': 'rating_point must be between 0 and 10'
+                    'message': 'rating_point must be between 0 and 10',
+                    'data': None
                 }), 400
         except (TypeError, ValueError):
             logger.error(f"Invalid rating_point format: {rating_point}")
             return jsonify({
                 'status': 'error',
-                'message': 'rating_point must be a valid number'
+                'message': 'rating_point must be a valid number',
+                'data': None
             }), 400
 
         # Validate hotel_id
@@ -104,21 +110,37 @@ def create_comment():
                 logger.error(f"Hotel not found: {hotel_id}")
                 return jsonify({
                     'status': 'error',
-                    'message': f'Hotel with id {hotel_id} not found'
+                    'message': f'Hotel with id {hotel_id} not found',
+                    'data': None
                 }), 404
         except (TypeError, ValueError):
             logger.error(f"Invalid hotel_id: {hotel_id}")
             return jsonify({
                 'status': 'error',
-                'message': 'hotel_id must be a valid integer'
-            })
+                'message': 'hotel_id must be a valid integer',
+                'data': None
+            }), 400
+
+        # Check if user has a booking for this hotel
+        has_booking = db.session.query(Booking).join(Hotel_Room).filter(
+            Booking.users_id == user.id,
+            Hotel_Room.hotel_id == hotel_id
+        ).first()
+        if not has_booking:
+            logger.error(f"User {user.id} has no booking for hotel {hotel_id}")
+            return jsonify({
+                'status': 'error',
+                'message': 'You must have a booking for this hotel to comment',
+                'data': None
+            }), 403
 
         # Validate comment (if provided)
         if comment_text is not None and not isinstance(comment_text, str):
             logger.error(f"Invalid comment type: {type(comment_text)}")
             return jsonify({
                 'status': 'error',
-                'message': 'comment must be a string'
+                'message': 'comment must be a string',
+                'data': None
             }), 400
 
         # Handle image uploads
@@ -129,7 +151,8 @@ def create_comment():
                 logger.error("Empty or missing image file")
                 return jsonify({
                     'status': 'error',
-                    'message': 'All image files must have valid filenames'
+                    'message': 'All image files must have valid filenames',
+                    'data': None
                 }), 400
 
             # Validate file size
@@ -139,7 +162,8 @@ def create_comment():
                 logger.error(f"File too large: {file_size} bytes")
                 return jsonify({
                     'status': 'error',
-                    'message': f'Image file size exceeds {MAX_FILE_SIZE / (1024 * 1024)}MB'
+                    'message': f'Image file size exceeds {MAX_FILE_SIZE / (1024 * 1024)}MB',
+                    'data': None
                 }), 400
             image_file.seek(0)  # Reset file pointer
 
@@ -148,7 +172,8 @@ def create_comment():
                 logger.error(f"Invalid file type: {image_file.filename}")
                 return jsonify({
                     'status': 'error',
-                    'message': f'Invalid file type. Allowed extensions: {ALLOWED_EXTENSIONS}'
+                    'message': f'Invalid file type. Allowed extensions: {ALLOWED_EXTENSIONS}',
+                    'data': None
                 }), 400
 
             # Generate a unique filename
@@ -162,9 +187,6 @@ def create_comment():
             image_file.save(file_path)
             image_urls.append(f"/{UPLOAD_FOLDER}/{unique_filename}")
 
-        # Store image URLs as a comma-separated string
-        image_url = ','.join(image_urls) if image_urls else None
-
         # Create new comment
         new_comment = Comment(
             rating_point=rating_point,
@@ -177,6 +199,7 @@ def create_comment():
         db.session.add(new_comment)
         db.session.commit()
 
+        # Add images to CommentImages
         for image_url in image_urls:
             comment_image = CommentImages(
                 comment_id=new_comment.id_comment,
@@ -196,7 +219,7 @@ def create_comment():
                 'comment': new_comment.comment,
                 'user_id': new_comment.user_id,
                 'hotel_id': new_comment.hotel_id,
-                'images': image_urls  # Trả về danh sách ảnh đã lưu
+                'images': image_urls
             }
         }
         logger.info(f"Comment created: {new_comment.id_comment}")
@@ -213,7 +236,8 @@ def create_comment():
         logger.error(f"Database error: {str(e)}")
         return jsonify({
             'status': 'error',
-            'message': f'Database error: {str(e)}'
+            'message': f'Database error: {str(e)}',
+            'data': None
         }), 400
     except Exception as e:
         db.session.rollback()
@@ -226,5 +250,81 @@ def create_comment():
         logger.error(f"Error creating comment: {str(e)}")
         return jsonify({
             'status': 'error',
-            'message': f'Error creating comment: {str(e)}'
+            'message': f'Error creating comment: {str(e)}',
+            'data': None
+        }), 500
+
+@comments_bp.route('/comments/hotel/<int:hotel_id>', methods=['GET'])
+@jwt_required()
+def get_comment_by_hotel_id(hotel_id):
+    try:
+        # Get the authenticated user's email from JWT
+        email = get_jwt_identity()
+        user = Users.query.filter_by(email=email).first()
+        if not user:
+            return jsonify({
+                'status': 'error',
+                'message': 'User not found',
+                'data': None
+            }), 404
+
+        # Fetch all comments for the hotel
+        comments = Comment.query.filter_by(hotel_id=hotel_id).all()
+        if not comments:
+            return jsonify({
+                'status': 'success',
+                'message': 'No comments found for this hotel',
+                'data': None
+            }), 200
+
+        hotel = Hotel.query.get(hotel_id)
+        if not hotel:
+            return jsonify({
+                'status': 'error',
+                'message': f'Hotel with id {hotel_id} not found',
+                'data': None
+            }), 404
+
+        comment_list = []
+        for comment in comments:
+            comment_data = {
+                'id_comment': comment.id_comment,
+                'rating_point': comment.rating_point,
+                'comment': comment.comment,
+                'user_id': comment.user_id,
+                'hotel_id': comment.hotel_id,
+                'images': [image.image_url for image in comment.images]
+            }
+            comment_list.append(comment_data)
+
+        # Prepare hotel data
+        hotel_data = {
+            'hotel_name': hotel.hotel_name,
+            'address': hotel.address,
+            'hotel_star': hotel.hotel_star,
+            'hotel_rating': hotel.hotel_rating,
+            'description': hotel.description,
+            'location': {
+                'city': hotel.location.city,
+                'country': hotel.location.country
+            },
+            'facilities': [facility.name for facility in hotel.facilities],
+            'images': [image.image_url for image in hotel.images]
+        }
+
+        return jsonify({
+            'status': 'success',
+            'message': 'Comments retrieved successfully',
+            'data': {
+                'hotel': hotel_data,
+                'comments': comment_list
+            }
+        }), 200
+
+    except Exception as e:
+        logger.error(f"Error fetching comments: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': f'Error fetching comments: {str(e)}',
+            'data': None
         }), 500

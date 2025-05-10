@@ -43,6 +43,10 @@
                 <label class="block text-gray-700">Point</label>
                 <input type="number" name="point" class="w-full p-2 border rounded" value="0">
             </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Date of Birth</label>
+                <input type="date" name="date_of_birth" class="w-full p-2 border rounded">
+            </div>
             <button type="submit" class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Add User</button>
         </form>
         <table class="w-full border-collapse border">
@@ -51,26 +55,34 @@
                     <th class="border p-2">ID</th>
                     <th class="border p-2">Name</th>
                     <th class="border p-2">Email</th>
-  <th class="border p-2">Phone</th>
+                    <th class="border p-2">Phone</th>
                     <th class="border p-2">Country</th>
                     <th class="border p-2">Point</th>
+                    <th class="border p-2">Date of Birth</th>
                     <th class="border p-2">Actions</th>
                 </tr>
             </thead>
             <tbody>
-                {% for user in users.items %}
+                {% if users.items %}
+                    {% for user in users.items %}
+                        <tr>
+                            <td class="border p-2">{{ user.id }}</td>
+                            <td class="border p-2">{{ user.user_name }}</td>
+                            <td class="border p-2">{{ user.email }}</td>
+                            <td class="border p-2">{{ user.phone_number or 'N/A' }}</td>
+                            <td class="border p-2">{{ user.country or 'N/A' }}</td>
+                            <td class="border p-2">{{ user.point }}</td>
+                            <td class="border p-2">{{ user.date_of_birth or 'N/A' }}</td>
+                            <td class="border p-2">
+                                <a href="{{ url_for('admin.delete_user', id=user.id) }}" class="text-red-500 hover:text-red-700" onclick="return confirm('Are you sure?')">Delete</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
                     <tr>
-                        <td class="border p-2">{{ user.id }}</td>
-                        <td class="border p-2">{{ user.user_name }}</td>
-                        <td class="border p-2">{{ user.email }}</td>
-                        <td class="border p-2">{{ user.phone_number }}</td>
-                        <td class="border p-2">{{ user.country }}</td>
-                        <td class="border p-2">{{ user.point }}</td>
-                        <td class="border p-2">
-                            <a href="{{ url_for('admin.delete_user', id=user.id) }}" class="text-red-500 hover:text-red-700" onclick="return confirm('Are you sure?')">Delete</a>
-                        </td>
+                        <td colspan="8" class="border p-2 text-center">No users available</td>
                     </tr>
-                {% endfor %}
+                {% endif %}
             </tbody>
         </table>
         {% if users.has_prev or users.has_next %}

@@ -10,6 +10,7 @@ hotels_bp = Blueprint('hotels', __name__)
 VALID_SORT_FIELDS = ['hotel_name', 'new_price', 'old_price', 'hotel_star', 'hotel_rating']
 VALID_SEARCH_FIELDS = ['hotel_name', 'address', 'facilities', 'hotel_star']
 
+
 @hotels_bp.route('/hotels/location/<int:id>', methods=['GET'])
 @jwt_required()
 def get_hotels_by_location(id):
@@ -24,12 +25,15 @@ def get_hotels_by_location(id):
             }
             return jsonify(response), 404
 
+        # Get query parameters
+        paging = request.args.get('paging', 'false').lower() == 'true'
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 10, type=int)
         sort_by = request.args.get('sort_by', default=None)
         sort_order = request.args.get('sort_order', default='asc')
 
-        if page < 1 or per_page < 1:
+        # Validate page and per_page only if paging is enabled
+        if paging and (page < 1 or per_page < 1):
             response = {
                 'status': 'error',
                 'message': 'Page and per_page must be positive integers',
@@ -52,12 +56,12 @@ def get_hotels_by_location(id):
         search_conditions = []
         having_conditions = []
 
-        # Filter by fields (original logic)
+        # Filter by fields
         for param, value in request.args.items():
             if param in ['page', 'per_page', 'sort_by', 'sort_order',
                          'hotel_star_min', 'hotel_star_max',
                          'user_rating_min', 'user_rating_max',
-                         'new_price_min', 'new_price_max']:
+                         'new_price_min', 'new_price_max', 'paging']:
                 continue
             if param not in VALID_SEARCH_FIELDS:
                 return jsonify({
@@ -88,7 +92,7 @@ def get_hotels_by_location(id):
                     query = query.outerjoin(HotelFacilities).outerjoin(Facilities)
                     search_conditions.append(Facilities.name.ilike(search_pattern))
 
-        # --- New range filter logic ---
+        # Range filter logic
         hotel_star_min = request.args.get('hotel_star_min', type=float)
         hotel_star_max = request.args.get('hotel_star_max', type=float)
         user_rating_min = request.args.get('user_rating_min', type=float)
@@ -130,12 +134,38 @@ def get_hotels_by_location(id):
             else:
                 query = query.order_by(asc(sort_column))
 
-        pagination = query.paginate(page=page, per_page=per_page, error_out=False)
-        hotels = pagination.items
+        # Conditional pagination
+        if paging:
+            pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+            hotels = pagination.items
+            pagination_info = {
+                'current_page': pagination.page,
+                'per_page': pagination.per_page,
+                'total_pages': pagination.pages,
+                'total_hotels': pagination.total,
+                'has_prev': pagination.has_prev,
+                'has_next': pagination.has_next,
+                'prev_page': pagination.prev_num,
+                'next_page': pagination.next_num
+            }
+        else:
+            # Count total hotels
+            count_query = Hotel.query.filter_by(id_location=id).outerjoin(
+                Comment, Hotel.id == Comment.hotel_id
+            ).group_by(Hotel.id)
+            if search_conditions:
+                count_query = count_query.filter(and_(*search_conditions))
+            if having_conditions:
+                count_query = count_query.having(and_(*having_conditions))
+            total_hotels = count_query.count()
+
+            hotels = query.all()
+            pagination_info = {
+                'total_hotels': total_hotels
+            }
 
         result = []
         for hotel, user_rating in hotels:
-
             result.append({
                 'id': hotel.id,
                 'hotel_name': hotel.hotel_name,
@@ -148,7 +178,7 @@ def get_hotels_by_location(id):
                 'image': [image.image_url for image in hotel.images],
                 'policies': hotel.policies,
                 'descriptions': hotel.description,
-                'distance':hotel.distance,
+                'distance': hotel.distance,
                 'location': {
                     'id_location': hotel.location.id_location,
                     'name': hotel.location.name,
@@ -157,17 +187,6 @@ def get_hotels_by_location(id):
                 },
                 'facilities': [facility.name for facility in hotel.facilities]
             })
-
-        pagination_info = {
-            'current_page': pagination.page,
-            'per_page': pagination.per_page,
-            'total_pages': pagination.pages,
-            'total_hotels': pagination.total,
-            'has_prev': pagination.has_prev,
-            'has_next': pagination.has_next,
-            'prev_page': pagination.prev_num,
-            'next_page': pagination.next_num
-        }
 
         response = {
             'status': 'success',

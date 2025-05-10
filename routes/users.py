@@ -12,8 +12,10 @@ bcrypt = Bcrypt()
 UPLOAD_FOLDER = 'static/uploads/avatars'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 @users_bp.route('/register', methods=['POST'])
 def register_user():
@@ -88,6 +90,7 @@ def register_user():
             'message': f'Error registering user: {str(e)}'
         }), 500
 
+
 @users_bp.route('/login', methods=['POST'])
 def login_user():
     try:
@@ -127,7 +130,8 @@ def login_user():
                 'country': user.country,
                 'avatar_url': user.avatar_url,
                 'point': user.point,
-                'access_token': access_token
+                'access_token': access_token,
+                'date_of_birth': user.date_of_birth
             }
         }), 200
 
@@ -136,6 +140,7 @@ def login_user():
             'status': 'error',
             'message': f'Error logging in: {str(e)}'
         }), 500
+
 
 @users_bp.route('/profile', methods=['GET'])
 @jwt_required()

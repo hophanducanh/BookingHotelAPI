@@ -27,6 +27,10 @@
                 <label class="block text-gray-700">Point Required</label>
                 <input type="number" name="point_required" class="w-full p-2 border rounded" required>
             </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Discount Value (%)</label>
+                <input type="number" step="0.1" name="discount_value" class="w-full p-2 border rounded" required>
+            </div>
             <button type="submit" class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Add Discount</button>
         </form>
         <table class="w-full border-collapse border">
@@ -36,21 +40,29 @@
                     <th class="border p-2">Name</th>
                     <th class="border p-2">Description</th>
                     <th class="border p-2">Point Required</th>
+                    <th class="border p-2">Discount Value (%)</th>
                     <th class="border p-2">Actions</th>
                 </tr>
             </thead>
             <tbody>
-                {% for discount in discounts.items %}
+                {% if discounts.items %}
+                    {% for discount in discounts.items %}
+                        <tr>
+                            <td class="border p-2">{{ discount.id }}</td>
+                            <td class="border p-2">{{ discount.discount_name }}</td>
+                            <td class="border p-2">{{ discount.description or 'N/A' }}</td>
+                            <td class="border p-2">{{ discount.point_required }}</td>
+                            <td class="border p-2">{{ discount.discount_value }}</td>
+                            <td class="border p-2">
+                                <a href="{{ url_for('admin.delete_discount', id=discount.id) }}" class="text-red-500 hover:text-red-700" onclick="return confirm('Are you sure?')">Delete</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
                     <tr>
-                        <td class="border p-2">{{ discount.id }}</td>
-                        <td class="border p-2">{{ discount.discount_name }}</td>
-                        <td class="border p-2">{{ discount.description }}</td>
-                        <td class="border p-2">{{ discount.point_required }}</td>
-                        <td class="border p-2">
-                            <a href="{{ url_for('admin.delete_discount', id=discount.id) }}" class="text-red-500 hover:text-red-700" onclick="return confirm('Are you sure?')">Delete</a>
-                        </td>
+                        <td colspan="6" class="border p-2 text-center">No discounts available</td>
                     </tr>
-                {% endfor %}
+                {% endif %}
             </tbody>
         </table>
         {% if discounts.has_prev or discounts.has_next %}

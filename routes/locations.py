@@ -5,8 +5,7 @@ from extensions import db
 
 locations_bp = Blueprint('locations', __name__)
 
-@locations_bp.route('/locations', methods=['GET'])
-@jwt_required()
+@locations_bp.route('api/locations', methods=['GET'])
 def get_locations():
     try:
         locations = Locations.query.all()

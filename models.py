@@ -7,6 +7,7 @@ class Discount(db.Model):
     discount_name = db.Column(db.String, nullable=False)
     description = db.Column(db.String)
     point_required = db.Column(db.Integer, nullable=False)
+    discount_value = db.Column(db.Float, nullable=False)
     user_discounts = db.relationship('UserDiscount', backref='discount', cascade='all, delete-orphan')
 
 class Hotel(db.Model):
@@ -62,6 +63,7 @@ class Users(db.Model):
     password = db.Column(db.String, nullable=False)
     avatar_url = db.Column(db.String)
     point = db.Column(db.Integer, default=0)
+    date_of_birth = db.Column(db.Date, nullable=True)
     comments = db.relationship('Comment', backref='user', cascade='all, delete-orphan')
     bookings = db.relationship('Booking', backref='user', cascade='all, delete-orphan')
     user_discounts = db.relationship('UserDiscount', backref='user', cascade='all, delete-orphan')
@@ -86,6 +88,7 @@ class Booking(db.Model):
     number_of_people = db.Column(db.Integer, nullable=False)
     number_of_rooms = db.Column(db.Integer, nullable=False)
     number_of_children = db.Column(db.Integer, nullable=False)
+    price = db.Column(db.Float, nullable=False)
     user_discount_id = db.Column(db.Integer, db.ForeignKey('user_discount.id'), nullable=True)
     room = db.relationship('Hotel_Room', backref='bookings')
 
@@ -102,6 +105,7 @@ class UserDiscount(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('Users.id'), nullable=False)
     discount_id = db.Column(db.Integer, db.ForeignKey('Discount.id'), nullable=False)
     amount = db.Column(db.Integer, nullable=False)
+    is_used = db.Column(db.Boolean, default=False)
     bookings = db.relationship('Booking', backref='user_discount', cascade='all, delete-orphan')
 
 class CommentImages(db.Model):
