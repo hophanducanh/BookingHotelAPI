@@ -171,7 +171,8 @@ def create_booking():
                 'base_price': base_price,
                 'discount_applied': bool(user_discount_id),
                 'discount_info': discount_info,
-                'total_price': final_price
+                'total_price': final_price,
+                'created_at': booking.created_at.strftime('%Y-%m-%dT%H:%M:%SZ')
             }
         }}), 201
 
@@ -268,7 +269,8 @@ def booking_history():
                     'address': hotel.address,
                     'star': hotel.hotel_star,
                     'description': hotel.description
-                }
+                },
+                'created_at': b.created_at.strftime('%Y-%m-%dT%H:%M:%SZ')
             })
 
         return jsonify({'status': 'success', 'message': 'Booking history retrieved', 'data': history}), 200

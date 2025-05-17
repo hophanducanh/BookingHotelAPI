@@ -219,6 +219,7 @@ def create_comment():
                 'comment': new_comment.comment,
                 'user_id': new_comment.user_id,
                 'hotel_id': new_comment.hotel_id,
+                'created_at': new_comment.created_at.strftime('%Y-%m-%dT%H:%M:%SZ'),
                 'images': image_urls
             }
         }
@@ -293,6 +294,7 @@ def get_comment_by_hotel_id(hotel_id):
                 'comment': comment.comment,
                 'user_id': comment.user_id,
                 'hotel_id': comment.hotel_id,
+                'created_at': comment.created_at.strftime('%Y-%m-%dT%H:%M:%SZ'),
                 'images': [image.image_url for image in comment.images]
             }
             comment_list.append(comment_data)

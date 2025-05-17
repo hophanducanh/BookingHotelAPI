@@ -77,6 +77,7 @@ class Comment(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('Users.id'), nullable=False)
     hotel_id = db.Column(db.Integer, db.ForeignKey('Hotel.id'), nullable=False)
     images = db.relationship('CommentImages', backref='Comment', cascade='all, delete-orphan')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Booking(db.Model):
     __tablename__ = 'Booking'
@@ -89,6 +90,7 @@ class Booking(db.Model):
     number_of_rooms = db.Column(db.Integer, nullable=False)
     number_of_children = db.Column(db.Integer, nullable=False)
     price = db.Column(db.Float, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
     user_discount_id = db.Column(db.Integer, db.ForeignKey('user_discount.id'), nullable=True)
     room = db.relationship('Hotel_Room', backref='bookings')
 
