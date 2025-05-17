@@ -2748,7 +2748,13 @@
                     "Quầy bar",
                     "Thang máy",
                     "Giặt ủi"
-                ]
+                ],
+                "Images": [
+                    "https://raw.githubusercontent.com/hophanducanh/BookingHotelData/main/H%E1%BA%A3i%20Ph%C3%B2ng/CMHotel%26Apartment/505687555.jpg",
+                    "https://raw.githubusercontent.com/hophanducanh/BookingHotelData/main/H%E1%BA%A3i%20Ph%C3%B2ng/CMHotel%26Apartment/505687572.jpg",
+                    "https://raw.githubusercontent.com/hophanducanh/BookingHotelData/main/H%E1%BA%A3i%20Ph%C3%B2ng/CMHotel%26Apartment/505687765.jpg",
+                    "https://raw.githubusercontent.com/hophanducanh/BookingHotelData/main/H%E1%BA%A3i%20Ph%C3%B2ng/CMHotel%26Apartment/505688002.jpg"
+                ]    
             },
             {
                 "Name": "Hotel L'Art Hanoi",
