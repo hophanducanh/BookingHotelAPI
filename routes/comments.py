@@ -259,6 +259,21 @@ def create_comment():
 @jwt_required()
 def get_comment_by_hotel_id(hotel_id):
     try:
+        sortType = request.args.get('sortType').lower()
+
+        valid_sort_types = {
+            'oldest' : Comment.created_at.asc(),
+            'newest' : Comment.created_at.desc(),
+            'lowest' : Comment.rating_point.asc(),
+            'highest' : Comment.rating_point.desc()
+        }
+
+        if sortType not in valid_sort_types:
+            return jsonify({
+                'status' : 'error',
+                'message' : 'Invalid sortType. Valid value: oldest, newest, lowest, highest',
+                'data' : None
+            }), 404
         # Get the authenticated user's email from JWT
         email = get_jwt_identity()
         user = Users.query.filter_by(email=email).first()
@@ -270,7 +285,9 @@ def get_comment_by_hotel_id(hotel_id):
             }), 404
 
         # Fetch all comments for the hotel
-        comments = Comment.query.filter_by(hotel_id=hotel_id).all()
+        base_comment = Comment.query.filter_by(hotel_id=hotel_id)
+        ordered_comments = base_comment.order_by(valid_sort_types[sortType])
+        comments = ordered_comments.all()
         if not comments:
             return jsonify({
                 'status': 'success',
